@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Chat Widget — UI showcase</title>
+  <meta name="description" content="Preview of the drop-in Claude AI chat widget UI — a floating chat launcher with streaming replies. Server-side PHP proxy keeps your API key safe.">
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%); color:#fff; padding:48px 24px; }
+    .wrap { max-width:720px; margin:0 auto; }
+    h1 { font-size:34px; margin:0 0 8px; letter-spacing:-.02em; }
+    .sub { color:#b9b7d0; margin:0 0 32px; font-size:16px; }
+    .box { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:14px; padding:22px 26px; margin:20px 0; }
+    .box h2 { margin:0 0 10px; font-size:18px; color:#5DCAA5; }
+    .box p, .box li { color:#d5d3ea; line-height:1.65; margin:6px 0; font-size:15px; }
+    code { background:rgba(255,255,255,.08); padding:2px 7px; border-radius:5px; font-family:Consolas,Monaco,monospace; font-size:13px; color:#7F77DD; }
+    a { color:#5DCAA5; text-decoration:none; border-bottom:1px solid rgba(93,202,165,.3); }
+    a:hover { border-bottom-color:#5DCAA5; }
+    .cta { display:inline-block; margin-top:20px; padding:12px 22px; background:#1D9E75; color:#fff; border-radius:10px; font-weight:600; border-bottom:none; }
+    .cta:hover { background:#178f68; }
+    .hint { position:fixed; bottom:110px; right:24px; background:rgba(0,0,0,.85); color:#fff; padding:10px 14px; border-radius:10px; font-size:13px; max-width:220px; text-align:right; z-index:100; }
+    .hint::after { content:""; position:absolute; bottom:-8px; right:22px; width:0;height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-top:8px solid rgba(0,0,0,.85); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Claude Chat Widget — UI showcase</h1>
+    <p class="sub">This is what your visitors see. A floating launcher, a themed chat panel, streaming replies. Vanilla JS, ~6 KB, zero build step.</p>
+
+    <div class="box">
+      <h2>What you're looking at</h2>
+      <p>Click the balloon in the bottom-right corner to open the widget UI. It's the exact same <code>widget.js</code> a real deployment uses — this static demo just has no backend wired up, so sending a message will show a connection error. The point is to see the UI, theming, and interactions.</p>
+    </div>
+
+    <div class="box">
+      <h2>To run the real thing</h2>
+      <p>1. <code>composer require grodev/claude-chat-widget</code></p>
+      <p>2. Set <code>ANTHROPIC_API_KEY</code> in your environment</p>
+      <p>3. Drop <code>widget.js</code> on any page — done. The proxy keeps your key on the server; the browser never sees it.</p>
+      <p>Full README: <a href="https://github.com/GronskiDeveloper/claude-chat-widget">github.com/GronskiDeveloper/claude-chat-widget</a></p>
+    </div>
+
+    <div class="box">
+      <h2>Want this on your site — connected to your data?</h2>
+      <p>We build AI assistants that answer with <em>your</em> pricing, offer, and booking data — not generic knowledge. That's when a chatbot starts converting instead of just decorating.</p>
+      <a class="cta" href="https://grodev.pl/ai">See grodev.pl/ai →</a>
+    </div>
+  </div>
+
+  <div class="hint">👉 Try it — click the balloon</div>
+
+  <script src="widget.js"></script>
+  <script>
+    ClaudeChatWidget.init({
+      endpoint: '/no-backend-in-this-static-demo',
+      title: 'Widget UI preview',
+      greeting: 'This is a static UI showcase. Sending a message will fail because there is no backend proxy here — see the README for setup.',
+      accent: '#1D9E75',
+    });
+  </script>
+</body>
+</html>
