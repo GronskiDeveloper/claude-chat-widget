@@ -7,6 +7,8 @@
 ![Podgląd widgetu czatu Claude API — panel czatu z wiadomościami na stronie firmowej](docs/preview.svg)
 
 > 🇵🇱 **Praca AI-first (PL).** Ten widget zbudowałem z Claude Code — threat model (klucz zostaje na serwerze), inżynieria kosztów (prompt caching), reguły walidacji i XSS po mojej stronie; boilerplate proxy i szkielet widgeta po stronie AI. Pełna retrospektywa krok po kroku: [CASE_STUDY.md](CASE_STUDY.md). Podział pracy człowiek/AI, weryfikacja i pułapki: [CLAUDE.md](CLAUDE.md). Konfiguracja agenta security-review: [.claude/commands/security-review.md](.claude/commands/security-review.md).
+>
+> 📝 **Read more (EN):** the workflow above is documented in detail — with side-by-side examples from this repo and four other public repos — in [How I document my AI-first workflow in every public repo](https://dev.to/gronskideveloper/how-i-document-my-ai-first-workflow-in-every-public-repo-4l0h) on Dev.to.
 
 A drop-in **AI chat widget** for any website, powered by the [Claude API](https://docs.anthropic.com/). Two small pieces:
 
