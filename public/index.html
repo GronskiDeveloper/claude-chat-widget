@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude chat widget — demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f0c29; color: #fff; display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    .card { max-width: 560px; text-align: center; }
+    h1 { font-size: 28px; margin: 0 0 12px; }
+    p { color: #b9b7d0; line-height: 1.6; }
+    code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 5px; font-size: 13px; }
+    a { color: #5dcaa5; }
+    .hint { margin-top: 28px; font-size: 14px; color: #8886a8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Claude chat widget</h1>
+    <p>
+      This page loads <code>widget.js</code> and points it at the
+      <code>server/chat.php</code> proxy. Click the balloon in the bottom-right
+      corner to start chatting.
+    </p>
+    <p>
+      The proxy holds your <code>ANTHROPIC_API_KEY</code> — the browser never
+      sees it. Configure it with a <code>.env</code> (see <code>.env.example</code>).
+    </p>
+    <p class="hint">
+      Built by <a href="https://grodev.pl/ai">GroDev</a> — AI assistants &amp; custom web apps on the Claude API.
+    </p>
+  </div>
+
+  <script src="widget.js"></script>
+  <script>
+    ClaudeChatWidget.init({
+      endpoint: '../server/chat.php',
+      title: 'Ask GroDev',
+      greeting: 'Hi! Ask me anything about the demo.',
+      accent: '#1D9E75',
+    });
+  </script>
+</body>
+</html>

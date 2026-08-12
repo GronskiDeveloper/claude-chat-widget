@@ -1,0 +1,19 @@
+{
+    "name": "grodev/claude-chat-widget",
+    "description": "Drop-in AI chat widget powered by the Claude API: a secure server-side PHP proxy (your API key never reaches the browser) plus a dependency-free vanilla-JS widget. PHP 8.1+.",
+    "type": "project",
+    "keywords": ["claude", "anthropic", "chatbot", "ai", "php", "widget", "assistant", "streaming"],
+    "homepage": "https://grodev.pl",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dominik Groński",
+            "homepage": "https://grodev.pl",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "anthropic-ai/sdk": "^0.7"
+    }
+}
