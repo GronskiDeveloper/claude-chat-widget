@@ -3,4 +3,10 @@ composer.lock
 .env
 *.log
 .DS_Store
-.claude/
+
+# Local-only Claude Code files (dev-server launcher, session state, etc).
+# NOTE: .claude/commands/ IS committed intentionally — those are agent configs
+# meant to be shared with anyone reviewing the repo.
+.claude/launch.json
+.claude/settings.local.json
+.claude/*.log
