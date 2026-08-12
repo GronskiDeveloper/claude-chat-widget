@@ -1,5 +1,8 @@
 # Claude Chat Widget (PHP)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-1D9E75.svg?style=flat-square)](LICENSE) [![PHP 8.1+](https://img.shields.io/badge/PHP-8.1%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://www.php.net) [![Claude API](https://img.shields.io/badge/Claude-API-D97706?style=flat-square)](https://www.anthropic.com/api) [![No build step](https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](public/widget.js) [![GroDev](https://img.shields.io/badge/by-GroDev-534AB7?style=flat-square)](https://grodev.pl/ai)
+
+
 A drop-in **AI chat widget** for any website, powered by the [Claude API](https://docs.anthropic.com/). Two small pieces:
 
 1. **A server-side PHP proxy** (`server/chat.php`) that holds your API key and talks to Claude — the browser never sees the key.
