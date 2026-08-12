@@ -1,18 +1,18 @@
 ---
-description: Security-focused review of proxy code before every change
+description: Audyt bezpieczeństwa proxy przed każdą zmianą w server/chat.php
 ---
 
-You are reviewing a change to `server/chat.php` in the `claude-chat-widget` repo. This file is a proxy that holds the Anthropic API key. **The single most important invariant is that the key never reaches the browser and never enters a log.**
+Recenzujesz zmianę w `server/chat.php` w repo `claude-chat-widget`. Ten plik to proxy trzymające klucz API do Anthropic. **Najważniejszy niezmiennik: klucz nie może nigdy trafić do browsera ani do loga.**
 
-Before approving any diff, verify all six of these hold in the resulting file:
+Zanim zaakceptujesz diff, upewnij się, że wszystkie sześć poniższych warunków zachodzi w wynikowym pliku:
 
-1. **`ANTHROPIC_API_KEY` is read only via `getenv()`** and only used as a constructor argument to `Anthropic\Client(apiKey: ...)`. It never appears in any header, response body, log statement, error message, or output.
-2. **Every field in the request body is validated, not trusted.** `role` must be strictly `"user"` or `"assistant"` — anything else drops the message. `content` must be a non-empty string.
-3. **Length caps are enforced.** `CHAT_MAX_CHARS` per message (default 4000), `CHAT_MAX_TURNS` per request (default 20). No unbounded input reaches the API.
-4. **The conversation must end on a `role: "user"` message** before the API is called — otherwise fail with 400.
-5. **CORS `Access-Control-Allow-Origin` is set from `CHAT_ALLOWED_ORIGIN` env**, not hard-coded to `*`.
-6. **The `X-Accel-Buffering: no` header is present** on the streaming response (prevents nginx buffering).
+1. **`ANTHROPIC_API_KEY` jest czytane wyłącznie przez `getenv()`** i używane tylko jako argument konstruktora `Anthropic\Client(apiKey: ...)`. Nie pojawia się w żadnym headerze, response body, log statement, error message ani outputcie.
+2. **Każde pole request body jest walidowane, nie zaufane.** `role` musi być ściśle `"user"` albo `"assistant"` — cokolwiek innego dropuje wiadomość. `content` musi być niepustym stringiem.
+3. **Limity długości są egzekwowane.** `CHAT_MAX_CHARS` per wiadomość (domyślnie 4000), `CHAT_MAX_TURNS` per request (domyślnie 20). Żaden nieograniczony input nie dociera do API.
+4. **Rozmowa musi kończyć się na wiadomości `role: "user"`** przed wywołaniem API — inaczej zwrócić 400.
+5. **CORS `Access-Control-Allow-Origin` jest ustawiane z env `CHAT_ALLOWED_ORIGIN`**, nie hardkodowane do `*`.
+6. **Header `X-Accel-Buffering: no` jest obecny** na odpowiedzi streamującej (zapobiega buforowaniu przez nginx).
 
-If any of these fail, block the change. If they all pass, note what the diff actually does and any residual risk (e.g. "rate limiting still not implemented — flagged for follow-up").
+Jeśli którykolwiek z tych warunków nie zachodzi, zablokuj zmianę. Jeśli wszystkie zachodzą, opisz co diff faktycznie robi i jakie ryzyko rezydualne pozostaje (np. „rate limiting nadal niezaimplementowany — flagged do follow-up").
 
-Do not skip this review because the diff "looks small." A one-line change to a header order can break the streaming contract silently.
+Nie pomijaj tego review, bo diff „wygląda mały". Jednoliniowa zmiana kolejności headerów może po cichu złamać kontrakt streamingu.

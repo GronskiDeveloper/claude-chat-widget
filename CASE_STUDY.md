@@ -1,113 +1,113 @@
-# Case study — building this widget with Claude Code
+# Case study — jak powstał ten widget z Claude Code
 
-A short honest retrospective on how this repo was built, because that's the process I get hired for, not the outcome file. It's also the kind of transparency I'd want to see from someone I was thinking about working with.
+Krótka, uczciwa retrospektywa jak zostało to zbudowane, bo za ten proces mnie się zatrudnia, nie za sam plik wyjściowy. To też forma transparentności, której sam bym oczekiwał od kogoś, kogo rozważam do współpracy.
 
-If you're a recruiter or a client trying to figure out what "AI-first" actually looks like in a working developer's day, this is that.
+Jeśli jesteś rekruterem albo klientem próbującym rozgryźć, jak „AI-first" wygląda w codziennej pracy developera — to jest to.
 
-## The brief (30 seconds)
+## Brief (30 sekund)
 
-A drop-in AI chat widget for a company website, with two hard constraints:
+Wpinany widget czatu AI na stronę firmową, z dwoma twardymi wymaganiami:
 
-1. **The Claude API key must never touch the browser.** A widget that calls `api.anthropic.com` directly from JavaScript leaks the key to anyone who opens DevTools, and the first person to notice will run up your bill overnight. This is a *design constraint*, not an implementation detail — it dictates the entire architecture.
-2. **Dependency-free on the frontend.** The widget has to drop into any site (WordPress, plain HTML, someone else's Laravel app) without a build step, a framework, or a version conflict. That means vanilla JS, hand-rolled CSS, one `<script>` tag. Nothing to compile.
+1. **Klucz API do Claude nie może nigdy trafić do browsera.** Widget wołający `api.anthropic.com` bezpośrednio z JavaScriptu wycieka klucz każdemu, kto otworzy DevTools, a pierwsza osoba, która to zauważy, robi Ci rachunek w nocy. To *ograniczenie designu*, nie detal implementacyjny — dyktuje całą architekturę.
+2. **Frontend dependency-free.** Widget musi wchodzić na dowolną stronę (WordPress, plain HTML, cudza aplikacja Laravel) bez build stepu, bez frameworka, bez konfliktów wersji. To znaczy vanilla JS, ręcznie napisane CSS, jeden tag `<script>`. Nic do kompilacji.
 
-Total build: ~90 minutes of active work, one interactive session.
+Cały build: ~90 minut aktywnej pracy, jedna interaktywna sesja.
 
-## Where the human work actually happened
+## Gdzie faktycznie zdarzyła się praca człowieka
 
-### 1. Threat model & architecture (human — before writing any code)
+### 1. Threat model i architektura (człowiek — przed napisaniem jakiegokolwiek kodu)
 
-The security decision drove everything downstream. Two options existed:
+Decyzja o bezpieczeństwie napędziła wszystko dalej. Były dwie opcje:
 
-- **Option A** — widget calls Claude directly from the browser with the key embedded.
-- **Option B** — widget calls a small server-side endpoint on the customer's own site, which holds the key and forwards to Claude.
+- **Opcja A** — widget woła Claude bezpośrednio z browsera z zaszytym kluczem.
+- **Opcja B** — widget woła mały endpoint po stronie serwera klienta, który trzyma klucz i przekazuje dalej do Claude.
 
-I chose B for the obvious reason (see constraint 1) and drew the shape:
+Wybrałem B z oczywistego powodu (patrz ograniczenie 1) i narysowałem kształt:
 
 ```
-Browser (widget.js)  ──POST /server/chat.php──▶  Your server  ──▶  Claude API
-        ◀───────────── SSE stream of text ──────────────
+Browser (widget.js)  ──POST /server/chat.php──▶  Twój serwer  ──▶  Claude API
+        ◀───────────── stream SSE z tekstem ──────────────
 ```
 
-The SSE decision was also mine — streaming means the user sees words appear immediately (perceived latency), long replies don't hit HTTP timeouts, and it's easier for a proxy to forward than a WebSocket upgrade. I didn't ask an AI about any of this; the tradeoffs are well-known and the wrong choice is easy to spot.
+Decyzja o SSE też była moja — streaming oznacza, że użytkownik widzi słowa pojawiające się od razu (perceived latency), długie odpowiedzi nie wchodzą w timeout HTTP, a proxy łatwiej to forwarduje niż upgrade do WebSocketa. Nie pytałem AI o żadną z tych rzeczy; tradeoffy są znane i zły wybór jest łatwo zauważyć.
 
-### 2. Pulling the exact SDK shape (human, not AI-guessed)
+### 2. Wyciągnięcie dokładnego kształtu SDK (człowiek, nie zgadywanie AI)
 
-Before writing a single line of `chat.php`, I loaded Claude Code's `claude-api` skill to get the current PHP SDK bindings. SDK APIs drift, and a model's training data may not reflect the latest release — asking Claude to "write PHP that calls the Anthropic API" without pinning the exact function shape is how you get invented method names that don't exist.
+Przed napisaniem pojedynczej linii `chat.php` załadowałem skill `claude-api` w Claude Code, żeby dostać aktualne bindingi PHP SDK. API SDK się zmieniają, a dane treningowe modelu mogą nie odzwierciedlać ostatniego wydania — proszenie Claude o „napisz PHP, który woła API Anthropic" bez zpinowania dokładnego kształtu funkcji to sposób na wymyślone nazwy metod, które nie istnieją.
 
-The skill gave me the exact classes I needed:
+Skill dał mi dokładne klasy, których potrzebowałem:
 
-- `Anthropic\Client` (client constructor with named `apiKey:` arg)
-- `Anthropic\Messages\RawContentBlockDeltaEvent` (the streaming event type)
-- `Anthropic\Messages\TextDelta` (the delta payload class)
-- `->messages->createStream(model:, maxTokens:, system:, messages:)` — camelCase named args (Stainless-generated SDK convention), which becomes snake_case on the wire.
+- `Anthropic\Client` (konstruktor z named arg `apiKey:`)
+- `Anthropic\Messages\RawContentBlockDeltaEvent` (typ eventu streamu)
+- `Anthropic\Messages\TextDelta` (klasa payloadu delty)
+- `->messages->createStream(model:, maxTokens:, system:, messages:)` — camelCase named args (konwencja Stainless-generated SDK), które stają się snake_case na warstwie sieci.
 
-Also confirmed the SDK version pin (`^0.7`) because v0.5.0 changed named args and anything older would break the code.
+Potwierdziłem też pin wersji SDK (`^0.7`), bo v0.5.0 zmieniła named args i cokolwiek starszego by się wywaliło.
 
-**Why this matters:** without the exact shape, Claude would have hallucinated something plausible-looking, `php -l` would have passed, and it would have blown up at runtime on the first real request. This is the single most common failure mode of "AI just writes code" — surface-level correctness that fails at the boundary.
+**Dlaczego to ma znaczenie:** bez dokładnego kształtu Claude wyhalucynowałby coś prawdopodobnie wyglądającego, `php -l` by przeszedł, i wywaliłoby się na pierwszym realnym requeście w runtime. To jest #1 failure mode „AI po prostu pisze kod" — poprawność powierzchniowa, która sypie na granicy.
 
-### 3. AI-drafted the proxy skeleton (Claude, ~10 min)
+### 3. AI zrobiło draft szkieletu proxy (Claude, ~10 min)
 
-With the design locked and the SDK shape pulled, I asked Claude to draft `server/chat.php`. It produced a reasonable first pass — client init, message parsing, `foreach ($stream as $event)` loop with the correct type check, SSE `echo "data: ..."` framing.
+Z zablokowanym designem i wyciągniętym kształtem SDK poprosiłem Claude o draft `server/chat.php`. Wyprodukował rozsądną pierwszą wersję — init klienta, parsowanie wiadomości, pętla `foreach ($stream as $event)` z poprawnym type-checkiem, framing SSE `echo "data: ..."`.
 
-### 4. Line-by-line audit + hardening (human, ~20 min)
+### 4. Audyt linia po linii + hardening (człowiek, ~20 min)
 
-This is the part that separates "I use AI" from "I use AI well." I read the draft top-to-bottom and rejected two things Claude proposed:
+To jest część, która odróżnia „używam AI" od „używam AI dobrze". Przeczytałem draft od góry do dołu i odrzuciłem dwie rzeczy, które Claude zaproponował:
 
-- **Logging the request body** — would log user PII into a plain file. Removed.
-- **Falling back to `$_ENV['ANTHROPIC_API_KEY']` if `getenv()` returned false** — unnecessary (`getenv` reads the same source on every hosting stack I've deployed on) and could pick up stale values on some. Removed.
+- **Logowanie request body** — logowałoby dane osobowe użytkownika do plain filea. Usunięte.
+- **Fallback do `$_ENV['ANTHROPIC_API_KEY']`, jeśli `getenv()` zwrócił false** — zbędne (`getenv` czyta to samo źródło na każdym stacku hostingu, na jakim wdrażałem), i na niektórych mogłoby złapać stare wartości. Usunięte.
 
-I *added*:
+*Dodałem:*
 
-- **Length caps** — `CHAT_MAX_CHARS` per message, `CHAT_MAX_TURNS` per request. LLMs don't cap themselves; a user pasting a 200 KB blob would cost real money.
-- **Role validation** — the request body's `role` field is *always* untrusted user input. Anything that isn't literally `"user"` or `"assistant"` gets dropped, not "coerced to user." Trust nothing from the wire.
-- **`X-Accel-Buffering: no`** — without it, nginx buffers the SSE stream and the browser sees a long pause followed by a wall of text. Load-bearing header.
-- **Prompt caching with `cacheControl`** — on the system prompt block. On a widget with many short requests, this is the difference between $50/mo and $5/mo of API spend. Cost engineering doesn't happen unless a human thinks about it.
-- **Try/catch that emits errors as SSE frames**, not as HTTP 500. By the time an upstream error fires, the response headers are already sent and the stream is open. Trying to `http_response_code(500)` at that point does nothing; the frame does.
+- **Length caps** — `CHAT_MAX_CHARS` per wiadomość, `CHAT_MAX_TURNS` per request. LLM-y się same nie ograniczają; user paste'ujący 200 KB blob kosztowałby realne pieniądze.
+- **Walidację role** — pole `role` w request body to *zawsze* nieufny input użytkownika. Cokolwiek, co nie jest literalnie `"user"` albo `"assistant"`, dropowane, nie „coerce'owane na user". Nic z sieci nie jest zaufane.
+- **`X-Accel-Buffering: no`** — bez tego nginx buforuje stream SSE i browser widzi długą pauzę, a potem ścianę tekstu. Kluczowy header.
+- **Prompt caching z `cacheControl`** — na bloku system promptu. Na widgecie z wieloma krótkimi requestami to różnica między 50 zł/mies. a 5 zł/mies. spendu na API. Inżynieria kosztów nie dzieje się bez człowieka, który o niej pomyśli.
+- **Try/catch, który emituje błędy jako frame'y SSE**, nie jako HTTP 500. Do czasu, gdy błąd upstreamu zafunkcjonuje, headery odpowiedzi są już wysłane i stream jest otwarty. Próba `http_response_code(500)` w tym momencie nic nie robi; frame — tak.
 
-### 5. AI-drafted the widget (Claude, ~10 min)
+### 5. AI zrobiło draft widgeta (Claude, ~10 min)
 
-Same pattern for the frontend. Claude drafted `widget.js` — floating launcher, panel toggle, message list, form, SSE parsing. Reasonable first draft.
+Ten sam wzorzec dla frontendu. Claude zrobił draft `widget.js` — floating launcher, toggle panelu, lista wiadomości, formularz, parsowanie SSE. Rozsądna pierwsza wersja.
 
-### 6. Widget audit + hardening (human, ~15 min)
+### 6. Audyt widgeta + hardening (człowiek, ~15 min)
 
-Rejected/rewrote:
+Odrzucone/przepisane:
 
-- **`innerHTML = userText`** — classic XSS. Replaced every user-provided string with `textContent`. If a future edit wants Markdown rendering, it has to happen server-side with a sanitizer, not client-side by string interpolation.
-- **A hard-coded 400px width** — replaced with `max-width: calc(100vw - 32px)` so it works on mobile.
-- **`Enter` always sends** — changed to "Enter sends, Shift+Enter is a newline." Multi-line questions matter on real widgets.
-- **No dark mode** — added `@media (prefers-color-scheme: dark)` and a CSS variable system so the widget respects OS theme automatically.
+- **`innerHTML = userText`** — klasyczny XSS. Zamieniłem każdy string od użytkownika na `textContent`. Jeśli przyszła zmiana zechce renderować Markdown, ma to zrobić po stronie serwera z sanityzatorem, nie po stronie klienta przez interpolację stringów.
+- **Hardkodowane 400px szerokości** — zamienione na `max-width: calc(100vw - 32px)`, żeby działało na mobile.
+- **`Enter` zawsze wysyła** — zmienione na „Enter wysyła, Shift+Enter to nowa linia". Wieloliniowe pytania mają znaczenie na realnych widgetach.
+- **Brak dark mode** — dodane `@media (prefers-color-scheme: dark)` i system zmiennych CSS, żeby widget respektował motyw OS automatycznie.
 
-Added the typing-dots animation because a chat widget without one feels broken during the first-token latency.
+Dodałem animację kropek pisania, bo widget czatu bez niej daje wrażenie zepsutego w pierwszej sekundzie latency.
 
-### 7. Verified in a real browser (human, ~10 min)
+### 7. Weryfikacja w prawdziwym browserze (człowiek, ~10 min)
 
-Used Claude Code's browser tools to actually load the widget in Chrome. Not "tested by asking the AI whether it should work" — literally opened the page, clicked the launcher, watched the panel appear, checked the console. **Zero errors, greeting bubble rendered, launcher animated correctly.** This step is non-negotiable — LLMs are extremely good at generating code that lints clean and fails at runtime.
+Użyłem narzędzi browsera w Claude Code, żeby faktycznie załadować widget w Chrome. Nie „przetestowane przez zapytanie AI, czy powinno działać" — dosłownie otwarta strona, kliknięty launcher, obserwacja pojawienia się panelu, sprawdzona konsola. **Zero błędów, bąbelek powitalny się wyrenderował, launcher animował się poprawnie.** Ten krok jest nienegocjowalny — LLM-y są ekstremalnie dobre w generowaniu kodu, który lintuje się czysto i sypie w runtime.
 
-The screenshot verification also caught one thing that neither `php -l` nor visual code review would have: the CSS `z-index: 2147483000` needed to be higher than the site's own overlays. Discovered because on a page with a modal, the launcher hid *behind* it.
+Weryfikacja screenshotem złapała też jedną rzecz, której nie złapałby ani `php -l`, ani code review: CSS `z-index: 2147483000` musiał być wyższy niż overlay strony. Odkryte dlatego, że na stronie z modalem launcher chował się *za* nim.
 
-### 8. Documentation (human, ~15 min)
+### 8. Dokumentacja (człowiek, ~15 min)
 
-I write my own READMEs. LLMs write generic READMEs that could describe any project. This one:
+Piszę własne README. LLM-y piszą generyczne README, które mogłyby opisywać dowolny projekt. Ten:
 
-- Opens with **why** (the API-key-in-browser threat model), because that's the whole reason the repo exists.
-- Includes an ASCII diagram of the request flow — most readers scan diagrams before prose.
-- The **"Production notes"** section is intentionally honest about what's *not* in the repo (rate limiting, logging, RAG). A README that oversells is worse than one that undersells; both readers get burned, only the honest one keeps trust.
+- Zaczyna się od **dlaczego** (threat model klucza-w-browserze), bo to cały powód istnienia repo.
+- Zawiera diagram ASCII flow requesta — większość czytelników skanuje diagramy przed prozą.
+- Sekcja **„Production notes"** jest specjalnie uczciwa co do tego, czego *nie ma* w repo (rate limiting, logowanie, RAG). README, które sprzedaje ponad miarę, jest gorsze niż to, które sprzedaje poniżej; obu czytelników zawodzi, tylko uczciwy zachowuje zaufanie.
 
-## Result
+## Wynik
 
-- 3 real files, ~350 lines of production code (`server/chat.php`, `public/widget.js`, `public/index.html`).
-- No external dependencies on the frontend, one PHP SDK on the backend, no build step.
-- Deploys in 5 minutes on any PHP-capable host.
-- MIT-licensed.
-- Handles the actual thing: streaming replies with the key kept safe.
+- 3 realne pliki, ~350 linii production code (`server/chat.php`, `public/widget.js`, `public/index.html`).
+- Brak zewnętrznych zależności na frontendzie, jeden PHP SDK na backendzie, brak build stepu.
+- Deploy w 5 minut na dowolnym hoście PHP.
+- Licencja MIT.
+- Obsługuje realną rzecz: streamujące odpowiedzi z kluczem trzymanym bezpiecznie.
 
-## What this shows about the workflow
+## Co to mówi o workflow
 
-The AI wrote maybe 60% of the lines. Every load-bearing decision — architecture, security posture, cost engineering, validation strategy, dependency choices, what to *reject* — was human. That's the shape of AI-first work I do: **AI is a fast typist and a reasonable reviewer; the design authority stays with me.** When I hand off design authority to a model, I get a repo that lints cleanly and fails in production.
+AI napisało może 60% linii. Każda kluczowa decyzja — architektura, postawa bezpieczeństwa, inżynieria kosztów, strategia walidacji, dobór zależności, co **odrzucić** — była człowiekiem. To jest kształt AI-first pracy, którą robię: **AI to szybki pisarz i rozsądny recenzent; autorytet designowy zostaje po mojej stronie.** Kiedy oddaję autorytet designowy modelowi, dostaję repo, które lintuje się czysto i sypie w produkcji.
 
-If you're evaluating me for AI-augmented work, this repo is a working sample. The [`CLAUDE.md`](CLAUDE.md) file in this repo (and in each of my other public repos) documents the same split in a shorter form.
+Jeśli oceniasz mnie pod pracę AI-augmented, to repo to działający sample. Plik [`CLAUDE.md`](CLAUDE.md) w tym repo (i w każdym z moich pozostałych publicznych repo) dokumentuje ten sam podział w krótszej formie.
 
 ---
 
-*Written by [Dominik Groński / GroDev](https://grodev.pl) — I build custom AI assistants on the Claude API. See [grodev.pl/ai](https://grodev.pl/ai).*
+*Autor: [Dominik Groński / GroDev](https://grodev.pl) — buduję asystenty AI na zamówienie na Claude API. Zobacz [grodev.pl/ai](https://grodev.pl/ai).*
