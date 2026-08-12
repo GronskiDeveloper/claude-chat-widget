@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Podgląd widgetu czatu Claude API — panel czatu z wiadomościami po prawej, strona firmowa w tle">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f0c29"/>
+      <stop offset="0.55" stop-color="#302b63"/>
+      <stop offset="1" stop-color="#24243e"/>
+    </linearGradient>
+    <linearGradient id="userBubble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1D9E75"/>
+      <stop offset="1" stop-color="#178f68"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="launcherShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#bg2)"/>
+
+  <!-- Background: mock company website -->
+  <g opacity="0.55">
+    <!-- Top nav -->
+    <rect x="0" y="0" width="1200" height="60" fill="rgba(255,255,255,0.03)"/>
+    <text x="32" y="38" font-family="ui-sans-serif, -apple-system" font-size="16" fill="rgba(255,255,255,0.7)" font-weight="700">example.co</text>
+    <g transform="translate(870, 38)" font-family="ui-sans-serif" font-size="13" fill="rgba(255,255,255,0.5)">
+      <text x="0">Oferta</text>
+      <text x="70">Cennik</text>
+      <text x="145">Kontakt</text>
+      <text x="230">Rezerwacja</text>
+    </g>
+
+    <!-- Hero copy -->
+    <text x="80" y="220" font-family="ui-sans-serif, -apple-system" font-size="52" fill="rgba(255,255,255,0.7)" font-weight="800">Twój produkt.</text>
+    <text x="80" y="285" font-family="ui-sans-serif, -apple-system" font-size="52" fill="rgba(255,255,255,0.4)" font-weight="800" font-style="italic">Twoi klienci.</text>
+    <rect x="80" y="330" width="420" height="14" rx="3" fill="rgba(255,255,255,0.08)"/>
+    <rect x="80" y="356" width="380" height="14" rx="3" fill="rgba(255,255,255,0.08)"/>
+    <rect x="80" y="382" width="300" height="14" rx="3" fill="rgba(255,255,255,0.08)"/>
+
+    <rect x="80" y="440" width="180" height="48" rx="8" fill="rgba(29,158,117,0.35)"/>
+    <text x="170" y="470" font-family="ui-sans-serif" font-size="14" fill="rgba(255,255,255,0.85)" text-anchor="middle" font-weight="600">Umów rozmowę</text>
+  </g>
+
+  <!-- Chat panel (bottom-right, in front) -->
+  <g transform="translate(760, 130)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="380" height="530" rx="18" fill="#1b1b1f"/>
+
+    <!-- Header -->
+    <path d="M 0 0 h 380 v 60 h -380 z" fill="#1D9E75"/>
+    <text x="24" y="38" font-family="ui-sans-serif, -apple-system" font-size="15" fill="#ffffff" font-weight="600">Asystent example.co</text>
+    <text x="356" y="38" font-family="ui-sans-serif" font-size="22" fill="#ffffff" text-anchor="end">×</text>
+
+    <!-- Messages -->
+    <!-- Bot greeting -->
+    <g transform="translate(20, 90)">
+      <rect x="0" y="0" width="270" height="50" rx="14" fill="#2c2c32"/>
+      <text x="16" y="21" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">Cześć! W czym mogę pomóc?</text>
+      <text x="16" y="39" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">Znam ofertę, ceny i terminy.</text>
+    </g>
+
+    <!-- User -->
+    <g transform="translate(110, 160)">
+      <rect x="0" y="0" width="250" height="34" rx="14" fill="url(#userBubble)"/>
+      <text x="16" y="22" font-family="ui-sans-serif" font-size="13" fill="#ffffff">Ile kosztuje sauna 2×2?</text>
+    </g>
+
+    <!-- Bot answer -->
+    <g transform="translate(20, 214)">
+      <rect x="0" y="0" width="310" height="86" rx="14" fill="#2c2c32"/>
+      <text x="16" y="22" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">Sauna ogrodowa 2×2 m to zwykle</text>
+      <text x="16" y="40" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">18–24 tys. zł z montażem — cena</text>
+      <text x="16" y="58" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">zależy od drewna (świerk / cedr)</text>
+      <text x="16" y="76" font-family="ui-sans-serif" font-size="13" fill="#f2f2f5">i piecyka. Zaraz podam wycenę.</text>
+    </g>
+
+    <!-- User -->
+    <g transform="translate(150, 320)">
+      <rect x="0" y="0" width="210" height="34" rx="14" fill="url(#userBubble)"/>
+      <text x="16" y="22" font-family="ui-sans-serif" font-size="13" fill="#ffffff">Poproszę cedr + piec elektryczny</text>
+    </g>
+
+    <!-- Bot typing indicator -->
+    <g transform="translate(20, 374)">
+      <rect x="0" y="0" width="80" height="30" rx="14" fill="#2c2c32"/>
+      <circle cx="22" cy="15" r="4" fill="#7F77DD" opacity="0.9"/>
+      <circle cx="40" cy="15" r="4" fill="#7F77DD" opacity="0.6"/>
+      <circle cx="58" cy="15" r="4" fill="#7F77DD" opacity="0.3"/>
+    </g>
+
+    <!-- Input -->
+    <line x1="0" y1="460" x2="380" y2="460" stroke="#38383f"/>
+    <rect x="16" y="474" width="270" height="42" rx="10" fill="#1b1b1f" stroke="#38383f"/>
+    <text x="32" y="500" font-family="ui-sans-serif" font-size="13" fill="rgba(242,242,245,0.4)">Napisz wiadomość…</text>
+    <rect x="298" y="474" width="66" height="42" rx="10" fill="#1D9E75"/>
+    <text x="331" y="500" font-family="ui-sans-serif" font-size="13" fill="#ffffff" font-weight="600" text-anchor="middle">Wyślij</text>
+  </g>
+
+  <!-- Data-flow annotation (top-right corner) -->
+  <g transform="translate(780, 90)" font-family="ui-monospace, monospace" font-size="11">
+    <text x="0" y="0" fill="#5DCAA5">Browser</text>
+    <text x="72" y="0" fill="rgba(255,255,255,0.4)">──▶</text>
+    <text x="115" y="0" fill="#EF9F27">proxy PHP</text>
+    <text x="200" y="0" fill="rgba(255,255,255,0.4)">──▶</text>
+    <text x="243" y="0" fill="#7F77DD">Claude API</text>
+    <text x="0" y="16" fill="rgba(255,255,255,0.5)">klucz zostaje na serwerze · streaming SSE</text>
+  </g>
+
+  <!-- Launcher (bottom-right) -->
+  <g transform="translate(1080, 620)" filter="url(#launcherShadow)">
+    <circle cx="0" cy="0" r="34" fill="#1D9E75"/>
+    <text x="0" y="8" font-family="ui-sans-serif" font-size="26" fill="#ffffff" text-anchor="middle">💬</text>
+  </g>
+
+  <!-- Bottom footer -->
+  <g transform="translate(0, 700)">
+    <text x="32" y="0" font-family="ui-monospace, monospace" font-size="11" fill="rgba(255,255,255,0.4)">claude-chat-widget · MIT · @GronskiDeveloper</text>
+    <text x="1168" y="0" font-family="ui-monospace, monospace" font-size="11" fill="rgba(255,255,255,0.4)" text-anchor="end">PHP 8.1 · Claude API · vanilla JS ~6 KB</text>
+  </g>
+</svg>
